@@ -6,66 +6,86 @@ import {
   Animated,
   StatusBar,
   Image,
-  TouchableOpacity,
 } from 'react-native';
 
 export default function SplashScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.5)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     // Animación de entrada
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1200,
+        duration: 1000,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         tension: 60,
-        friction: 7,
+        friction: 8,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 1000,
+        duration: 800,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]).start(() => {
+      // Pequeño efecto de latido después de aparecer
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: 2 }
+      ).start();
+    });
+
+    // Navegación automática al Home después de 2.5 segundos
+    const timer = setTimeout(() => {
+      navigation.replace('Home');
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#FFD100" />
+      <StatusBar barStyle="light-content" backgroundColor="#003DA5" />
 
-      {/* Fondo con franjas */}
-      <View style={styles.topStripe} />
-      <View style={styles.middleStripe} />
-      <View style={styles.bottomStripe} />
+      {/* Detalles decorativos con los colores de Ecuador */}
+      <View style={styles.stripeTop} />
+      <View style={styles.stripeBottom} />
 
+      {/* Logo oficial */}
       <Animated.View
         style={[
-          styles.logoContainer,
+          styles.logoWrapper,
           {
             opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
+            transform: [{ scale: scaleAnim }, { scale: pulseAnim }],
           },
         ]}
       >
-        {/* Escudo SVG representado con componentes */}
-        <View style={styles.shield}>
-          <View style={styles.shieldTop}>
-            <View style={styles.shieldTopLeft} />
-            <View style={styles.shieldTopRight} />
-          </View>
-          <View style={styles.shieldBottom} />
-          <Text style={styles.shieldText}>🦅</Text>
-          <Text style={styles.shieldFEF}>FEF</Text>
-        </View>
+        <Image
+          source={require('./assets/fef_logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </Animated.View>
 
+      {/* Texto Ecuador - La Tri */}
       <Animated.View
         style={[
           styles.textContainer,
@@ -75,20 +95,16 @@ export default function SplashScreen({ navigation }) {
           },
         ]}
       >
-        <Text style={styles.title}>SELECCIÓN</Text>
-        <Text style={styles.subtitle}>ECUATORIANA</Text>
-        <Text style={styles.country}>🇪🇨 ECUADOR</Text>
-        <Text style={styles.tagline}>La Tri — Unidos por los colores</Text>
-      </Animated.View>
+        <Text style={styles.mainTitle}>ECUADOR</Text>
+        <Text style={styles.subTitle}>- La Tri -</Text>
+        <Text style={styles.tagline}>¡Unidos por los colores!</Text>
 
-      <Animated.View style={{ opacity: fadeAnim, position: 'absolute', bottom: 60 }}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Home')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>CONOCE AL EQUIPO →</Text>
-        </TouchableOpacity>
+        {/* Indicador de carga */}
+        <View style={styles.dotsRow}>
+          <View style={[styles.dot, styles.dotActive]} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+        </View>
       </Animated.View>
     </View>
   );
@@ -97,141 +113,76 @@ export default function SplashScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#003087',
+    backgroundColor: '#003DA5', // Azul principal
     alignItems: 'center',
     justifyContent: 'center',
   },
-  topStripe: {
+  stripeTop: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: '33%',
-    backgroundColor: '#FFD100',
-    opacity: 0.15,
+    height: '28%',
+    backgroundColor: '#FFCC00', // Amarillo
+    opacity: 0.12,
   },
-  middleStripe: {
-    position: 'absolute',
-    top: '33%',
-    left: 0,
-    right: 0,
-    height: '33%',
-    backgroundColor: '#003087',
-    opacity: 0.05,
-  },
-  bottomStripe: {
+  stripeBottom: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '33%',
-    backgroundColor: '#CC0000',
-    opacity: 0.1,
+    height: '18%',
+    backgroundColor: '#CC0000', // Rojo
+    opacity: 0.08,
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  shield: {
-    width: 140,
-    height: 160,
-    backgroundColor: '#FFD100',
-    borderRadius: 10,
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
+  logoWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 20,
-    shadowColor: '#FFD100',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    overflow: 'hidden',
+    marginBottom: 28,
   },
-  shieldTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-    flexDirection: 'row',
-  },
-  shieldTopLeft: {
-    flex: 1,
-    backgroundColor: '#003087',
-  },
-  shieldTopRight: {
-    flex: 1,
-    backgroundColor: '#FFD100',
-  },
-  shieldBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-    backgroundColor: '#CC0000',
-    opacity: 0.3,
-  },
-  shieldText: {
-    fontSize: 60,
-    zIndex: 10,
-  },
-  shieldFEF: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#003087',
-    letterSpacing: 4,
-    zIndex: 10,
-    marginTop: -5,
+  logo: {
+    width: 170,
+    height: 170,
   },
   textContainer: {
     alignItems: 'center',
-    marginTop: 10,
   },
-  title: {
-    fontSize: 38,
+  mainTitle: {
+    fontSize: 42,
     fontWeight: '900',
-    color: '#FFD100',
-    letterSpacing: 8,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 2, height: 2 },
+    color: '#FFCC00',
+    letterSpacing: 3,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 1, height: 2 },
     textShadowRadius: 5,
   },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: '600',
+  subTitle: {
+    fontSize: 24,
+    fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 6,
+    letterSpacing: 2,
     marginTop: 4,
   },
-  country: {
-    fontSize: 28,
-    marginTop: 16,
-    letterSpacing: 2,
-  },
   tagline: {
-    fontSize: 13,
+    fontSize: 12,
     color: 'rgba(255,255,255,0.7)',
-    marginTop: 10,
-    fontStyle: 'italic',
+    marginTop: 12,
     letterSpacing: 1,
   },
-  button: {
-    backgroundColor: '#FFD100',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 30,
-    elevation: 8,
-    shadowColor: '#FFD100',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
+  dotsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 32,
   },
-  buttonText: {
-    color: '#003087',
-    fontWeight: '900',
-    fontSize: 15,
-    letterSpacing: 2,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+  },
+  dotActive: {
+    backgroundColor: '#FFCC00',
+    width: 20,
+    borderRadius: 4,
   },
 });
